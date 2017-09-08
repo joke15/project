@@ -1,96 +1,136 @@
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-using namespace std;
+#include <time.h>
+/* run this program using the console pauser or add your own getch, system("pause") or input loop */
+FILE *file=NULL;
 
-int main()
+void swap(int *a,int *b)
 {
-	FILE *f1 =fopen(".\\Sudoku.txt","w");
-	int t;
-	cin >> t;
-	int rep[10000] = { 0 }; rep[0] = 100;
-	srand(time(NULL));
-	while (t)
+	int c;
+	c=*a;
+	*a=*b;
+	*b=c;
+}
+
+int main(int argc, char* argv[])
+{
+	file=fopen(".\\sudoku.txt","w+");
+	if (!strcmp(argv[1],"-c"))
 	{
-		int res[9][9];
-		memset(res, 0, sizeof(res));
-		while (rep[res[0][8] + res[0][7] * 10 + res[0][6] * 100 + res[0][5] * 1000]>=10)
+		int i=0,t=0,temp=1;
+		while(argv[2][i]!='\0')
 		{
-        	int p = 8, num[9] = { 0 };
-        	num[8] = 1;
-        	res[0][0] = 9;
-			while (p)
+			if (argv[2][i]<=57 && argv[2][i]>=48)
 			{
-				int rn = rand() % 8;
-				if (!num[rn])
-				{
-					p--;
-					num[rn] = 1;
-					res[0][8-p] = rn + 1;
-				}
+				t*=10;
+				t+=(argv[2][i]-48);
+				i++;
+			}
+			else
+			{
+				printf("ERROR!");
+				return 0;
 			}
 		}
-		rep[res[0][8] + res[0][7] * 10 + res[0][6] * 100 + res[0][5] * 1000]++;
-		int x = 1, y = 0, z = 0;
-		while (x != 9)
+		srand(time(NULL));
+		while(t--)
 		{
-			if (z == 50) { if(x!=1)x--; y = 0; z = 0; }
-			int row = 0, column = 0, ver = 1;
-			int randon = rand() % 9 + 1;
-			while (column < y)
+			int sudoku[9][9]= {9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1,
+			                   9,8,7,6,5,4,3,2,1
+			                  };
+			int temp1=10;
+			while(temp1--)
 			{
-				if (randon != res[x][column])column++;
-				else { ver = 0; break; }
-			}
-			while (ver&&row < x)
-			{
-				if (randon != res[row][y])row++;
-				else { ver = 0; break; }
-			}
-			if (ver)
-			{
-				int initR, initC, r = x % 3, c = y % 3;
-				if (x < 3)initR = 0;
-				else if (x < 6)initR = 3;
-				else if (x < 9)initR = 6;
-				if (y < 3)initC = 0;
-				else if (y < 6)initC = 3;
-				else if (y < 9)initC = 6;
-				for (int i = 0; i < r; i++)
+				int r1=rand()%8+1;
+				int r2=rand()%8+1;
+				if (r1!=r2)
 				{
-					for (int j = 0; j < c; j++)
-					{
-						if (randon == res[initR + i][initC + j])ver = 0;
-					}
+					swap(&sudoku[0][r1],&sudoku[0][r2]);
 				}
 			}
-			if (ver)
+			int x=1,y=0,row=0,column,rm;
+			while (x!=9)
 			{
-				res[x][y] = randon;
-				z = 0;
-				y++;
-				if (y % 9 == 0)
+				bool p=false;
+				int rt=0;
+				while(!p && rt<20)
 				{
-					y = y % 9;
+					row=0;
+					rm=rand()%(9-y);
+					rt++;
+					while(row<x)
+					{
+						if (sudoku[row][y] == sudoku[x][rm+y])break;
+						else
+						{
+							row++;
+						}
+					}
+					if (row==x) p=true;
+					else
+					{
+						continue;
+					}
+					int initR, initC;
+					if (x < 3)initR = 0;
+					else if (x < 6)initR = 3;
+					else if (x < 9)initR = 6;
+					if (y < 3)initC = 0;
+					else if (y < 6)initC = 3;
+					else if (y < 9)initC = 6;
+					for (i = 0; i < x%3; i++)
+					{
+						for (int j = 0; j < 3; j++)
+						{
+							if (sudoku[i+initR][j+initC]==sudoku[x][rm+y])
+							{
+								p=false;
+								j=3;
+								i=x%3;
+							}
+						}
+					}
+					if (p)
+					{
+						swap(&sudoku[x][y],&sudoku[x][y+rm]);
+					}
+				}
+				y=(y+1)%9;
+				if (rt>=20)
+				{
+					if (x!=1)
+					x--;
+					y=0;
+				}
+				else if (!y)
+				{
 					x++;
 				}
 			}
-			z++;
-		}
-		for (int i = 0; i <= 8; i++)
-		{
-			for (int j = 0; j <= 8; j++)
+			for (i=0;i<9;i++)
 			{
-				fprintf(f1,"%d ", res[i][j]);
+				for (int j=0; j<9;j++)
+				{
+					fprintf(file,"%d ",sudoku[i][j]);
+				}
+				fprintf(file,"\n");
 			}
-			fprintf(f1,"\n");
+			fprintf(file,"\n");
 		}
-		fprintf(f1,"\n");
-		t--;
+		fprintf(file,"finish");
 	}
-	printf("finish");
-	fclose(f1);
+	else
+	{
+		printf("ERROR!");
+	}
+	fclose(file);
 	return 0;
 }
